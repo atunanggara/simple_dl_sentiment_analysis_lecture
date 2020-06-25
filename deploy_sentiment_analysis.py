@@ -22,18 +22,13 @@ from keras import layers
 
 def main():
     st.title('Deployed Deep Learning Sentiment Analysis')
-    (train_data, train_labels), (test_data, test_labels) = imdb.load_data(num_words=10000)
+    (_, _), (test_data, test_labels) = imdb.load_data(num_words=10000)
     current_dir = os.getcwd()
-    current_file = os.path.join(current_dir, "model_simple.h5")
+    current_file = os.path.join(current_dir, "model_simple.hdf5")
     # test_data[0]
-    (_, _), (x_test, y_test) = prep_model(train_data, train_labels,
-                                                      test_data, test_labels)
+    (_, _), (x_test, _) = prep_model(_, _, test_data, test_labels)
     model_load = load_model(current_file)
-    layer_outputs = [layer.output for layer in model_load.layers]
-    activation_model = models.Model(inputs = model_load.input,
-                                    outputs = layer_outputs)
-    result = activation_model.predict(x_test)
-    output_test = result[-1]
+    result = model_load.predict(x_test)
 
     st.write('Once we are done tweaking the model, we can use the test data \
               to see how well the model predict them. ')
@@ -53,7 +48,7 @@ def main():
         label_out = "negative"
     st.write('The test label for this particular review is: ', label_out)
     st.write('The probability of the review being positive is: ',
-              output_test[decode_test][0])
+              result[decode_test][0])
 
 
 def prep_model(train_data, train_labels, test_data, test_labels):

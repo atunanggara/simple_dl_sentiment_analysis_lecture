@@ -2,9 +2,11 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import time
+import os
 
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
+import tensorflow as tf
 from numpy import array
 from keras.datasets import imdb
 from keras.preprocessing.text import one_hot
@@ -43,7 +45,7 @@ def main():
     decode_number = st.number_input('Insert an index number:',
                                     min_value = 0,
                                     max_value = 24999,
-                                    value = 0,
+                                    value = 10,
                                     step = 0)
     data_choice, label_choice = test_or_train_data(train_data, train_labels,
                                                    test_data, test_labels)
@@ -70,7 +72,7 @@ def main():
               can be modified using the option below.')
     option_unit = st.radio('The number of nodes inside the \
                             input and hidden layer:',
-                            ('8', '16', '32', '64'),
+                            ('8', '16', '32', '128'),
                             index = 1)
     st.write('Multiple options are available for the choice of activation \
              functions inside the layers: sigmoid, tanh, and relu:')
@@ -117,14 +119,14 @@ def main():
                                  y_val, 512, epoch_num)
             plot_loss_train(model, 'loss', 'val_loss')
             plot_metric(model, 'accuracy', 'val_accuracy')
-        # model.save('three_dense.hdf5')
-        st.success('...and now we\'re done!')
-    st.write('if you want to save the model, feel free to do so by hitting \
-              the button below.')
-    save_button = st.button('Saving the model')
-    if save_button:
         model.save('model_simple.h5')
-        st.success('The model has been saved as `model_simple.h5` file.')
+        st.success('...and now we\'re done!')
+    # st.write('if you want to save the model, feel free to do so by hitting \
+    #           the button below.')
+    # save_button = st.button('Saving the model')
+    # if save_button:
+    #     model.save('model_simple.h5')
+    #     st.success('The model has been saved as `model_simple.h5` file.')
 # def pred_vect_sequence(pred, dimension = 10000):
 #     results = np.zeros((1, dimension))
 #     for sequence in pred:
@@ -188,11 +190,17 @@ def plot_loss_train(model, str_loss, str_val_loss):
 
 
 def model_work(model, x_train, y_train, x_val, y_val, size_batch, num_epoch):
+    filepath = ('./checkpoint')
+    var_callback = tf.keras.callbacks.ModelCheckpoint(
+                filepath, monitor='val_loss', verbose=0, save_best_only=False,
+                save_weights_only=False, mode='auto',
+                )
     model.fit(x_train,
               y_train,
               batch_size=size_batch,
               epochs=num_epoch,
-              validation_data=(x_val, y_val)
+              validation_data=(x_val, y_val),
+              callbacks = [var_callback]
               )
     return model
 
@@ -241,8 +249,8 @@ def vectorize_sequences(sequences, dimension=10000):
 
 def test_or_train_data(train_data, train_labels, test_data, test_labels):
     choice_testtrain = {
-        "train_data": "training data",
-        "test_data" : "testing data"
+        "train_data": "Training data",
+        "test_data" : "Testing data"
     }
     radio_choice = st.radio(
         'Would you be interested in the testing data or training data?',
